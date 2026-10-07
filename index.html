@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ko" data-v="h">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Scent</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--fg:#fff;--ln:#3b3b3b;--mut:#a3a3a3;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-v="d"]{--bg:#fff;--fg:#0a0a0a;--ln:#d2d2d2;--mut:#777}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:11px/1.8 'Space Mono','Noto Sans KR',monospace}
+button{font:inherit;color:inherit}
+.hd{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;display:flex;justify-content:space-between;background:#000;color:#fff;padding:9px 14px;font:11px 'Archivo Black',sans-serif}
+.hd button{all:unset;cursor:pointer;margin-left:16px}.hd button:first-child{margin:0}
+main{max-width:1100px;margin:0 auto;padding:0 14px 48px}main[hidden]{display:none}
+.tt{font:400 12vw/.95 'Archivo Black',sans-serif;letter-spacing:-.03em;text-align:center;margin:26px 0 14px;padding-bottom:14px;border-bottom:1px solid var(--fg)}
+.tg{font:14px/1.4 'Archivo Black','Noto Sans KR',sans-serif;text-align:center;margin:0 0 16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--ln);border-left:1px solid var(--ln)}
+.cell{all:unset;box-sizing:border-box;cursor:pointer;display:block;text-align:center;padding:26px 12px 20px;border-right:1px solid var(--ln);border-bottom:1px solid var(--ln)}
+.cell svg{width:80%;max-width:230px;margin-bottom:14px;transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.cell:hover svg,.cell:focus-visible svg{transform:rotate(24deg) scale(1.06)}
+.cell small,.pc small{display:block;font-size:10px;line-height:1.6}
+.hero{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--ln)}
+.hero>div{padding:20px}.im{border-right:1px solid var(--ln);display:grid;place-items:center}
+.hero p{margin:0 0 8px}.ds{margin-top:14px!important;line-height:1.9}
+.btn{display:block;width:100%;margin-top:18px;padding:12px;border:0;background:#000;color:#fff;font-weight:700;cursor:pointer;transition:background .2s}
+.btn:hover{background:#444}
+.bar{border:1px solid var(--ln);border-top:0;text-align:center;padding:12px;font:14px 'Archivo Black',sans-serif}
+.dbs{text-align:center;font-size:9px;letter-spacing:.03em;color:var(--mut);border:1px solid var(--ln);border-top:0;padding:4px;background:var(--bg)}
+#authModal{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px}
+#authModal[hidden]{display:none}
+.am-card{position:relative;width:100%;max-width:320px;background:var(--bg);color:var(--fg);border:1px solid var(--fg);padding:26px 20px 20px}
+.am-card h2{font:400 20px 'Archivo Black',sans-serif;margin:0 0 18px;letter-spacing:-.01em}
+#amClose{all:unset;position:absolute;top:14px;right:16px;cursor:pointer;font-size:13px}
+.am-card label{display:block;font-size:10px;color:var(--mut);margin:0 0 14px;letter-spacing:.03em}
+.am-card input{display:block;width:100%;margin-top:5px;padding:9px 8px;background:transparent;border:1px solid var(--ln);color:var(--fg);font:12px 'Space Mono',monospace}
+.am-card input:focus-visible{outline:1px solid var(--fg)}
+.am-msg{font-size:10px;line-height:1.6;margin:-6px 0 14px}
+.am-switch{all:unset;display:block;width:100%;text-align:center;margin-top:14px;font-size:10px;color:var(--mut);cursor:pointer;text-decoration:underline}
+.prods{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(150px,1fr);overflow-x:auto;border:1px solid var(--ln);border-top:0;scroll-snap-type:x mandatory}
+.pc{all:unset;box-sizing:border-box;display:block;cursor:default;text-align:center;padding:22px 10px;border-right:1px solid var(--ln);scroll-snap-align:start}
+button.pc{cursor:pointer}
+.pc svg{width:64px;height:90px;margin-bottom:12px;transition:transform .4s}.pc:hover svg{transform:rotate(-8deg) scale(1.08)}
+button.pc svg{width:70px;height:70px}
+.epk{margin-top:64px}
+.ol{font:400 12vw/1 'Archivo Black',sans-serif;color:transparent;-webkit-text-stroke:1.5px var(--fg);letter-spacing:-.03em;text-align:center;margin:0 0 20px}
+.lb{display:block;font-size:10px;color:var(--mut);margin:0 0 6px}
+.ab p{max-width:46ch;margin:0}
+.row{display:grid;grid-template-columns:42% 1fr;gap:6%;margin-top:32px}
+.cdc{position:relative}
+.cdw{position:sticky;top:calc(48px + env(safe-area-inset-top,0px));aspect-ratio:1;border-radius:50%;box-shadow:0 0 0 1px var(--ln)}
+.cd{position:absolute;inset:0;border-radius:50%;overflow:hidden}.cd svg{width:100%;height:100%;display:block}
+.sh{position:absolute;inset:0;border-radius:50%;pointer-events:none;background:conic-gradient(from 30deg,transparent 0 18%,rgba(255,255,255,.55) 24%,transparent 30% 68%,rgba(255,255,255,.4) 74%,transparent 80%)}
+.hole{position:absolute;inset:38%;border-radius:50%;background:var(--bg);box-shadow:0 0 0 7px rgba(255,255,255,.6),0 0 0 8px var(--ln)}
+.tl{margin:0 0 22px;border-top:1px solid var(--ln)}
+.tl .tr{display:flex;align-items:stretch;border-bottom:1px solid var(--ln)}
+.tl .rowbtn{all:unset;box-sizing:border-box;flex:1;min-width:0;display:grid;grid-template-columns:22px 1fr;gap:6px;padding:7px 0;cursor:pointer;transition:padding .2s,background .2s}
+.tl .rowbtn:hover,.tl .rowbtn.on{padding-left:8px;background:var(--fg);color:var(--bg)}
+.tl .rowbtn.on b::before{content:"▸ "}
+.tl b{font-weight:400}.tl em{display:block;font-style:normal;font-size:10px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl .rowbtn:hover em,.tl .rowbtn.on em{color:inherit;opacity:.7}
+.tl .ext{all:unset;box-sizing:border-box;flex:none;width:30px;display:grid;place-items:center;cursor:pointer;color:var(--mut);text-decoration:none}
+.tl .ext:hover{color:var(--fg)}
+#player{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg);border-top:1px solid var(--fg);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px))}
+#player[hidden]{display:none}
+.p-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;max-width:480px;margin:0 auto 8px}
+.p-top div{min-width:0}
+.p-top b{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-top em{font-style:normal;color:var(--mut);font-size:10px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pClose{all:unset;cursor:pointer;font-size:14px;flex:none;padding:2px 4px}
+.p-frame{width:100%;max-width:480px;margin:0 auto;aspect-ratio:16/9;background:#000}
+.p-frame iframe{width:100%;height:100%;border:0;display:block}
+.p-ctrl{display:flex;align-items:center;justify-content:center;gap:22px;max-width:480px;margin:8px auto 0;font:12px 'Archivo Black',sans-serif}
+.p-ctrl button{all:unset;cursor:pointer;font-size:16px}
+.p-ctrl a{color:inherit;text-decoration:none;font:11px 'Space Mono',monospace;border:1px solid var(--ln);padding:5px 10px}
+.p-ctrl a:hover{background:var(--fg);color:var(--bg)}
+.ph{margin:24px 0 0}.ph svg{display:block;width:100%;aspect-ratio:4/3}
+figcaption{font-size:9px;color:var(--mut);margin-top:6px}
+.info{display:grid;grid-template-columns:1fr 1fr;gap:6%;margin:40px 0}
+.gal{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-bottom:48px}
+.gal figure{width:calc(25% - 9px);margin:0}.gal svg{display:block;width:100%;aspect-ratio:1}.gal figcaption{text-align:center}
+.tape{max-width:420px;margin:16px auto 0}.tape svg{display:block;width:100%}
+.reel{transform-box:fill-box;transform-origin:center}
+.ls{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--ln);margin-top:28px}
+.ls a{padding:16px 8px;text-align:center;color:inherit;text-decoration:none;border-right:1px solid var(--ln);transition:background .2s,color .2s}
+.ls a:last-child{border:0}.ls a:hover{background:var(--fg);color:var(--bg)}
+.abt{position:relative;text-align:center;max-width:720px;margin:0 auto;padding:70px 20px 40px;font:900 clamp(17px,4.4vw,28px)/1.3 'Archivo Black','Noto Sans KR',sans-serif}
+.abt p{margin:0 0 1.4em}.fc{position:absolute;width:64px;animation:fl 9s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-14px) rotate(14deg)}}
+footer{max-width:1100px;margin:0 auto;padding:0 14px 28px;text-align:center}
+.mb{font:12px 'Archivo Black',sans-serif;margin:40px 0 24px;padding-top:24px;border-top:1px solid var(--ln)}
+.big a{display:block;font:400 min(11vw,110px)/1.02 'Archivo Black',sans-serif;color:inherit;text-decoration:none;letter-spacing:-.02em;transition:opacity .2s}
+.big a:hover{opacity:.45}
+.fb{display:flex;justify-content:space-between;margin-top:56px;font:12px 'Archivo Black',sans-serif}
+:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="hd"><button id="hm">⌂ HOME</button><span><button id="ab">ABOUT</button><button id="ct">CONTACT</button><button id="authBtn">LOGIN</button></span></header>
+<main id="vh"></main>
+<main id="vd" hidden></main>
+<main id="va" hidden></main>
+<div id="authModal" hidden>
+  <div class="am-card">
+    <button id="amClose" aria-label="닫기">✕</button>
+    <h2 id="amTitle">LOGIN</h2>
+    <form id="amForm">
+      <label>EMAIL<input type="email" id="amEmail" required autocomplete="email"></label>
+      <label>PASSWORD<input type="password" id="amPass" required minlength="6" autocomplete="current-password"></label>
+      <p class="am-msg" id="amErr" hidden></p>
+      <button type="submit" class="btn" id="amSubmit">LOGIN</button>
+    </form>
+    <button id="amSwitch" class="am-switch">계정이 없으신가요? 회원가입</button>
+  </div>
+</div>
+<div id="player" hidden>
+  <div class="p-top"><div><b id="pTitle"></b><em id="pArtist"></em></div><button id="pClose" aria-label="닫기">✕ CLOSE</button></div>
+  <div class="p-frame"><iframe id="ytf" src="" title="player" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe></div>
+  <div class="p-ctrl"><button id="pPrev" aria-label="이전 곡">⏮</button><button id="pNext" aria-label="다음 곡">⏭</button><a id="pExt" href="#" target="_blank" rel="noopener">유튜브 앱에서 열기 ↗</a></div>
+</div>
+<footer><p class="mb">MADE BY ME</p><nav class="big"><a href="#">INSTA</a><a href="#">SPOTIFY</a><a href="#">YOUTUBE</a><a href="#">EMAIL</a></nav><div class="fb"><span>DAILY SCENT</span><span>©2026</span></div></footer>
+
+<script>
+const S=[
+{k:"FLORAL",ko:"플로럴",c:["#f6c1cf","#d5789a"],n:["장미","피오니","프리지아"],m:"봄 산책, 햇살, 첫 만남",
+d:"막 피어난 꽃다발을 품에 안은 듯한 향입니다. 장미와 피오니의 화사함 위에 프리지아의 여린 초록빛이 살짝 얹혀 있습니다. 봄 산책이나 첫 만남처럼 마음이 몽글해지는 순간에 잘 어울립니다.",
+p:["Diptyque|Eau Rose|장미, 리치, 블랙커런트","Jo Malone|Peony & Blush Suede|피오니, 레드 애플, 스웨이드","Dior|Miss Dior|장미, 피오니, 머스크","Chloé|Eau de Parfum|피오니, 리치, 프리지아","Maison Margiela|Replica Springtime in a Park|배, 피오니, 장미"],
+t:["벚꽃 엔딩|버스커 버스커","La Vie en Rose|Édith Piaf","Bloom|The Paper Kites","Flowers|Miley Cyrus","밤편지|아이유","라일락|아이유","Sunflower|Rex Orange County"]},
+{k:"CITRUS",ko:"시트러스",c:["#ffe08a","#f4a13a"],n:["레몬","베르가못","만다린"],m:"여름 낮, 아침 샤워, 드라이브",
+d:"껍질을 막 벗긴 과일처럼 산뜻하고 투명한 향입니다. 베르가못과 레몬의 톡 쏘는 첫인상이 지나가면 만다린의 부드러운 단맛이 남습니다. 아침 샤워 뒤나 무더운 오후에 기분을 가볍게 바꿔 드립니다.",
+p:["Acqua di Parma|Colonia|레몬, 베르가못, 라벤더","Jo Malone|Lime Basil & Mandarin|라임, 바질, 만다린","Hermès|Eau d'Orange Verte|오렌지, 민트, 오크모스","Tom Ford|Neroli Portofino|네롤리, 베르가못, 레몬","Atelier Cologne|Orange Sanguine|블러드 오렌지, 자스민, 시더"],
+t:["Lemon|Kenshi Yonezu","Sunday Best|Surfaces","Levitating|Dua Lipa","Walking on Sunshine|Katrina & The Waves","Here Comes the Sun|The Beatles","Watermelon Sugar|Harry Styles","Good as Hell|Lizzo"]},
+{k:"WOODY",ko:"우디",c:["#c9a37a","#7a5232"],n:["샌달우드","시더","베티버"],m:"가을 저녁, 서재, 캠프파이어",
+d:"햇볕에 잘 마른 나무와 오래된 서재를 떠올리게 하는 차분한 향입니다. 샌달우드의 부드러움과 시더의 건조함, 베티버의 흙내음이 조용히 겹쳐집니다. 가을 저녁이나 혼자 보내는 시간에 곁에 두기 좋습니다.",
+p:["Le Labo|Santal 33|샌달우드, 시더, 가죽","Diptyque|Tam Dao|샌달우드, 사이프러스, 앰버","Tom Ford|Oud Wood|우드, 샌달우드, 통카빈","Byredo|Gypsy Water|베르가못, 소나무, 샌달우드","Maison Margiela|Replica By the Fireplace|군밤, 클로브, 과이악 우드"],
+t:["Holocene|Bon Iver","Fast Car|Tracy Chapman","The Night We Met|Lord Huron","Ophelia|The Lumineers","To Build a Home|The Cinematic Orchestra","Skinny Love|Bon Iver","Wild Horses|The Rolling Stones"]},
+{k:"MUSK",ko:"머스크",c:["#e4ddd0","#a99f8e"],n:["화이트 머스크","코튼","아이리스"],m:"일요일 아침, 침구, 낮잠",
+d:"갓 세탁한 침구와 따뜻한 살결을 닮은 포근하고 깨끗한 향입니다. 화이트 머스크와 코튼, 아이리스가 은은하게 번져 가까이 있을 때만 느껴집니다. 일요일 아침처럼 느긋한 하루에 어울립니다.",
+p:["Byredo|Blanche|화이트 로즈, 머스크, 샌달우드","Le Labo|Another 13|머스크, 앰브록산, 자스민","Maison Margiela|Replica Lazy Sunday Morning|배, 아이리스, 화이트 머스크","Glossier|You|핑크 페퍼, 아이리스, 머스크","Narciso Rodriguez|For Her|머스크, 오렌지 블로섬, 앰버"],
+t:["Clair de Lune|Claude Debussy","Gymnopédie No.1|Erik Satie","Sunday Morning|The Velvet Underground","Best Part|Daniel Caesar & H.E.R.","Pink + White|Frank Ocean","Sofia|Clairo","Weightless|Marconi Union"]},
+{k:"GREEN",ko:"그린",c:["#b7d7a0","#5f8f57"],n:["무화과잎","이끼","바질"],m:"비 갠 오후, 숲길, 피크닉",
+d:"비 갠 뒤의 풀잎과 막 딴 허브를 닮은 초록빛 향입니다. 무화과잎의 싱그러움에 이끼와 바질의 촉촉한 기운이 더해집니다. 숲길을 걷거나 창문을 활짝 열어 둔 오후에 잘 맞습니다.",
+p:["Diptyque|Philosykos|무화과잎, 무화과, 시더","Hermès|Un Jardin sur le Nil|그린 망고, 연꽃, 자몽","Aesop|Hwyl|히노키, 사이프러스, 이끼","Hermès|Un Jardin en Méditerranée|무화과나무, 시트러스, 사이프러스","Le Labo|Thé Matcha 26|말차, 무화과, 백단"],
+t:["Banana Pancakes|Jack Johnson","Riptide|Vance Joy","Home|Edward Sharpe & The Magnetic Zeros","Three Little Birds|Bob Marley & The Wailers","Put Your Records On|Corinne Bailey Rae","Better Together|Jack Johnson","Little Talks|Of Monsters and Men"]},
+{k:"GOURMAND",ko:"구르망",c:["#f0c9a0","#a8643b"],n:["바닐라","카라멜","통카빈"],m:"겨울 카페, 비 오는 밤, 디저트",
+d:"따뜻한 디저트와 카페의 공기를 닮은 달콤한 향입니다. 바닐라와 카라멜의 포근함에 통카빈의 고소함이 깊이를 더합니다. 추운 겨울이나 비 오는 밤에 작은 위로가 되어 드립니다.",
+p:["Mugler|Angel|패출리, 바닐라, 카라멜","Prada|Candy|카라멜, 머스크, 벤조인","Kilian|Angels' Share|코냑, 시나몬, 바닐라","Yves Saint Laurent|Black Opium|커피, 바닐라, 화이트 플라워","Maison Margiela|Replica Jazz Club|럼, 바닐라, 담배잎"],
+t:["Honey|Kehlani","Sugar|Maroon 5","Sweet Creature|Harry Styles","Cake by the Ocean|DNCE","Sweet Disposition|The Temper Trap","Chocolate|The 1975","Coffee|Beabadoobee"]},
+{k:"AQUATIC",ko:"아쿠아틱",c:["#a9d8ee","#3f86b8"],n:["바닷바람","씨솔트","연꽃"],m:"여름 바다, 휴가, 바람",
+d:"파도가 부서지는 해변의 바람과 소금기를 담은 시원한 향입니다. 씨솔트의 짭조름함과 연꽃의 맑은 물기가 투명하게 이어집니다. 여름 바다나 탁 트인 하늘 아래에서 가장 빛납니다.",
+p:["Armani|Acqua di Giò|바다 노트, 베르가못, 로즈마리","Issey Miyake|L'Eau d'Issey|연꽃, 프리지아, 멜론","Jo Malone|Wood Sage & Sea Salt|씨솔트, 세이지, 앰브렛","Davidoff|Cool Water|민트, 라벤더, 해양 노트","Maison Margiela|Replica Beach Walk|코코넛, 씨솔트, 일랑일랑"],
+t:["Island in the Sun|Weezer","Ocean Eyes|Billie Eilish","Ocean Drive|Duke Dumont","Kokomo|The Beach Boys","Sea of Love|Cat Power","Waves|Mr. Probz","Summer|Joe Hisaishi"]},
+{k:"AMBER",ko:"앰버",c:["#e7a35a","#7b2f2a"],n:["앰버","인센스","벤조인"],m:"늦은 밤, 촛불, 특별한 자리",
+d:"촛불이 켜진 밤처럼 깊고 따뜻한 향입니다. 앰버와 인센스, 벤조인이 천천히 피어올라 오래 남는 잔향을 만듭니다. 늦은 저녁이나 특별한 자리에서 분위기를 한층 짙게 해 드립니다.",
+p:["Guerlain|Shalimar|베르가못, 아이리스, 바닐라","Maison Francis Kurkdjian|Baccarat Rouge 540|자스민, 사프란, 앰버그리스","Tom Ford|Tobacco Vanille|담배잎, 바닐라, 통카빈","Jo Malone|Myrrh & Tonka|몰약, 통카빈, 라벤더","Serge Lutens|Ambre Sultan|앰버, 벤조인, 파출리"],
+t:["Midnight City|M83","Blinding Lights|The Weeknd","Redbone|Childish Gambino","Wicked Game|Chris Isaak","Slow Dancing in a Burning Room|John Mayer","Dance Me to the End of Love|Leonard Cohen","Ain't No Sunshine|Bill Withers"]}
+];
+[["봄날|BTS","Lovely Day|Bill Withers","Golden Hour|JVKE","Dandelions|Ruth B.","Yellow|Coldplay"],
+["Happy|Pharrell Williams","Can't Stop the Feeling!|Justin Timberlake","Shut Up and Dance|WALK THE MOON","Dynamite|BTS","Sunroof|Nicky Youre & dazy"],
+["Harvest Moon|Neil Young","Flightless Bird, American Mouth|Iron & Wine","Between the Bars|Elliott Smith","Blackbird|The Beatles","The Cave|Mumford & Sons"],
+["Nuvole Bianche|Ludovico Einaudi","Comptine d'un autre été|Yann Tiersen","Sunset Lover|Petit Biscuit","Golden|Harry Styles","I Wanna Be Yours|Arctic Monkeys"],
+["Budapest|George Ezra","Rivers and Roads|The Head and the Heart","Mr. Blue Sky|Electric Light Orchestra","Ho Hey|The Lumineers","Emmylou|First Aid Kit"],
+["Vanilla Twilight|Owl City","Peaches|Justin Bieber","Strawberry Fields Forever|The Beatles","Sweet Nothing|Calvin Harris","Dessert|Dawin"],
+["Sail|AWOLNATION","Beyond the Sea|Bobby Darin","Surfin' U.S.A.|The Beach Boys","Pacific Coast Highway|Marina","California Dreamin'|The Mamas & the Papas"],
+["Nights|Frank Ocean","Video Games|Lana Del Rey","Let's Get It On|Marvin Gaye","Cherry|Lana Del Rey","Only Love Can Hurt Like This|Paloma Faith"]].forEach((x,i)=>S[i].t.push(...x));
+const $=q=>document.querySelector(q),R=document.documentElement,V={h:$('#vh'),d:$('#vd'),a:$('#va')};
+let u=0,ang=0,ly=0,pl=false,spin=[];
+const fs=(n,m=15)=>{const x=Math.min(m,88/(n*.75));return`min(${x}vw,${x*10.5}px)`};
+const yt=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q);
+const cap=s=>`<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="58" fill="${s.c[0]}"/><circle cx="60" cy="60" r="50" fill="none" stroke="${s.c[1]}" stroke-width="2" stroke-dasharray="2 4"/><rect x="10" y="44" width="100" height="32" fill="#111"/><text x="60" y="67" text-anchor="middle" font-family="Archivo Black,sans-serif" font-size="${Math.min(20,90/(s.k.length*.78))}" fill="${s.c[0]}">${s.k}</text></svg>`;
+const bottle=(s,j)=>{const n=u++,rx=[5,16,30,10,22][j];return`<svg viewBox="0 0 60 84"><defs><linearGradient id="b${n}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${s.c[0]}"/><stop offset="1" stop-color="${s.c[1]}"/></linearGradient></defs><rect x="22" y="3" width="16" height="13" rx="2" fill="#111"/><rect x="26" y="16" width="8" height="7" fill="#888"/><rect x="7" y="23" width="46" height="57" rx="${rx}" fill="url(#b${n})" stroke="#111" stroke-width="1.2"/><rect x="13" y="31" width="6" height="34" rx="3" fill="#fff" opacity=".45"/></svg>`};
+const sc=(s,k)=>{const n=u++,x=40+k*47%130,y=50+k*13%36;return`<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="s${n}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.c[0]}"/><stop offset="1" stop-color="#fff3e4"/></linearGradient><filter id="n${n}"><feTurbulence baseFrequency=".85" numOctaves="2"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0"/></filter></defs><rect width="200" height="200" fill="url(#s${n})"/><circle cx="${x}" cy="${y}" r="${16+k%3*5}" fill="#fff" opacity=".9"/><path d="M0 132Q60 ${104+k*4} 120 126T200 116V200H0Z" fill="${s.c[1]}" opacity=".55"/><path d="M0 158Q70 138 130 154T200 146V200H0Z" fill="${s.c[1]}"/><rect width="200" height="200" filter="url(#n${n})" opacity=".28"/></svg>`};
+const C=(x,y,r,f,o=1,s='none',w=1)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" opacity="${o}" stroke="${s}" stroke-width="${w}"/>`,
+E=(x,y,a,b,f,o=1,r=0,cx=x,cy=y)=>`<ellipse cx="${x}" cy="${y}" rx="${a}" ry="${b}" fill="${f}" opacity="${o}" transform="rotate(${r} ${cx} ${cy})"/>`,
+Q=(x,y,w,h,f,o=1,r=0)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${f}" opacity="${o}"/>`,
+Pa=(d,f,o=1,s='none',w=1)=>`<path d="${d}" fill="${f}" opacity="${o}" stroke="${s}" stroke-width="${w}" stroke-linecap="round"/>`,
+Pt=(x,y,n,a,b,off,f,o=1,r=0)=>Array.from({length:n},(_,i)=>E(x,y-off,a,b,f,o,r+i*360/n,x,y)).join(''),
+L=(n,fn)=>Array.from({length:n},(_,i)=>fn(i)).join(''),
+Hl=(y,f,o=1)=>Pa(`M0 ${y}Q50 ${y-14} 100 ${y}T200 ${y}V200H0Z`,f,o);
+const PH={
+"장미":(a,b)=>[a,"#fff3ea",Pt(100,105,7,26,36,28,b,.5)+Pt(100,105,5,22,28,15,a,.9,20)+C(100,105,16,b,.8)+C(100,105,7,a,.9)+E(38,162,28,10,"#7c9a6b",.85,-28)+E(164,166,28,10,"#7c9a6b",.85,28)],
+"피오니":(a,b)=>["#fff",a,Pt(100,100,10,17,40,36,a,.95)+Pt(100,100,8,15,30,24,"#fff",.55,18)+Pt(100,100,6,12,20,12,b,.55)+C(100,100,8,"#f3d36b")],
+"프리지아":(a,b)=>["#fff8dc",a,Pa("M100 200C92 150 110 110 100 60","none",1,"#6e9a5c",3)+[[100,56],[88,84],[113,104]].map(p=>Pt(p[0],p[1],6,6,11,9,"#fff6c9")+C(p[0],p[1],3,"#f0b84a")).join("")+E(70,175,30,7,"#6e9a5c",.9,-35)],
+"봄 산책":(a,b)=>[a,"#fff",Hl(108,"#cfe0b9",.7)+Pa("M84 200L98 108H102L142 200Z","#eadccb")+Q(44,110,6,60,"#5a4a44")+Q(158,108,6,64,"#5a4a44")+C(46,92,32,b,.7)+C(30,124,24,a)+C(160,86,34,b,.7)+C(176,122,24,a)],
+"햇살":(a)=>["#fff4d6",a,C(150,40,22,"#fff",.95)+Pt(150,40,14,2,60,40,"#fff",.4)+E(30,172,54,14,"#5f8a52",.9,-25)+E(96,192,64,12,"#6b9a5a",.9,-8)+E(176,170,40,10,"#5f8a52",.85,25)],
+"첫 만남":()=>["#e9d6c8","#e2c9b6",C(70,108,36,"#fff")+C(70,108,26,"#6f4230")+C(70,108,12,"#a66f4f",.5)+C(140,96,36,"#fff")+C(140,96,26,"#6f4230")+C(140,96,12,"#a66f4f",.5)+Q(100,102,16,5,"#ddd",1,2)],
+"레몬":(a)=>["#fff3b8",a,E(100,108,54,38,"#f7d63b",1,-12)+E(80,96,24,9,"#fff",.4,-12)+E(152,70,32,11,"#5d9a48",.9,35)+E(152,70,28,1.5,"#3f7a35",.8,35)],
+"베르가못":()=>["#f3eed0","#dfe6b0",C(100,108,50,"#d5cb45")+L(9,i=>C(70+(i*23)%60,86+(i*17)%44,3,"#b7ae32",.5))+C(88,90,16,"#fff",.25)+E(148,62,28,10,"#5d9a48",.9,30)],
+"만다린":(a,b)=>[b,"#ffe1b0",C(100,110,52,"#f28a1c")+C(100,110,45,"#ffe3a3")+Pt(100,110,9,9,30,24,"#ffb02e",.95)+C(100,110,6,"#fff0c0")],
+"여름 낮":()=>["#8fd0f0","#e9f7ff",C(60,52,26,"#fff8c8")+Pt(60,52,14,2,54,46,"#fff",.45)+E(150,62,32,10,"#fff",.9)+E(172,68,22,8,"#fff")+Hl(150,"#ffd36b")+Hl(175,"#f4a13a")],
+"아침 샤워":()=>["#dff3fb","#fff",E(100,40,50,14,"#b9c4c9")+Q(94,30,12,4,"#9aa5aa")+L(18,i=>E(52+(i%9)*12+(i>8?6:0),88+(i*37)%80,2,6,"#7fbfe0",.8))+Hl(190,"#cfe7f2")],
+"드라이브":()=>["#ffd7a0","#f4a13a",C(100,96,32,"#fff2c0",.9)+Hl(112,"#d9884b")+Pa("M66 200L96 108H104L134 200Z","#5c5551")+Q(99,120,2,10,"#fff")+Q(98,140,4,14,"#fff")+Q(96,166,6,20,"#fff")],
+"샌달우드":(a,b)=>["#e8d9c4","#cdb08b",C(100,100,62,"#b98d5c",1,b,2)+[52,42,32,22,12].map(r=>C(100,100,r,"none",.55,b,1.4)).join("")+Pa("M100 100L150 62","none",.4,b,1)],
+"시더":()=>["#d8e0cf","#b7c4a9",Pa("M40 40L70 110H10Z","#3f5b43",.35)+Pa("M100 30L138 100H62Z","#3f5b43")+Pa("M100 60L146 140H54Z","#3a5540")+Pa("M100 90L154 180H46Z","#34503a")+Q(95,180,10,20,"#4a3527")],
+"베티버":()=>["#e5dcc0","#c9bd94",L(24,i=>Pa(`M${16+i*7.5} 200Q${30+i*6} 120 ${8+i*8+(i%3)*9} ${36+(i*29)%50}`,"none",.85,i%2?"#8a7a45":"#a89a5f",1.6))],
+"가을 저녁":()=>["#ffb36b","#7a3f2f",C(100,112,36,"#ffe0a3",.9)+Hl(140,"#3a2a26")+Pa("M150 200V110M150 130L175 100M150 150L128 122","none",1,"#2a1e1b",3)+[[40,50,30],[70,90,-20],[130,60,50],[170,120,10]].map(p=>E(p[0],p[1],9,5,"#d9752b",1,p[2])).join("")],
+"서재":()=>["#3a2a20","#2a1c14",C(160,40,44,"#ffd28a",.25)+Q(0,72,200,5,"#1c120b")+Q(0,142,200,5,"#1c120b")+L(3,r=>L(13,i=>Q(6+i*14.5,[72,142,200][r]-44-(i*7)%16,11,44+(i*7)%16,["#8b3a2f","#3f5b6b","#c9a35a","#5f6f4a","#a86b3c"][(i+r)%5])))],
+"캠프파이어":()=>["#1b1d2b","#3a2a2a",L(14,i=>C(10+(i*47)%190,8+(i*29)%70,1,"#fff",.8))+C(100,118,60,"#ff9a3c",.25)+Pa("M100 128C74 108 92 84 100 50C110 82 128 104 100 128Z","#ff7a1f")+Pa("M100 128C88 114 96 100 100 84C106 100 114 114 100 128Z","#ffd36b")+E(100,150,48,7,"#5a3a26",1,-14)+E(100,150,48,7,"#3f271a",1,14)],
+"화이트 머스크":(a,b)=>["#f5f1ea","#e4ddd0",E(70,150,52,10,b,.25)+E(70,138,50,28,"#fff")+E(138,158,44,8,b,.25)+E(138,148,42,22,"#f1eadf")+E(104,112,30,18,"#fff",.95)+E(98,106,16,7,"#fff",.9)],
+"코튼":()=>["#efe9df","#d9cfbd",Pa("M100 200V112","none",1,"#7a6a4a",3)+C(100,86,22,"#fff")+C(80,100,19,"#fff")+C(120,100,19,"#fff")+C(100,104,20,"#fff")+C(100,86,22,"none",.35,"#a99f8e")+C(80,100,19,"none",.35,"#a99f8e")+C(120,100,19,"none",.35,"#a99f8e")+Pa("M78 118L100 144L122 118Z","#6a5a3f")],
+"아이리스":()=>["#e7e1ee","#cfc6dc",Pa("M100 200V120","none",1,"#5f8a52",3)+E(100,86,16,38,"#8a78b8",.95)+E(76,112,14,34,"#9a88c6",.95,-40)+E(124,112,14,34,"#9a88c6",.95,40)+E(100,122,6,16,"#f0c84a",.9)],
+"일요일 아침":(a,b)=>["#f6efe4","#e8dccb",Pa("M40 26H124L156 200H72Z","#fff",.6)+Pa("M82 26L114 200M40 96H140","none",.5,"#e8dccb",3)+E(160,172,14,36,b,.22,10)+Q(0,180,200,20,"#e0d3bf",.6)],
+"침구":()=>["#f3eee6","#e2d9ca",Q(28,36,96,44,"#fff",1,20)+Pa("M0 100Q50 74 100 100T200 100V200H0Z","#fff")+Pa("M0 138Q50 112 100 138T200 138V200H0Z","#efe8dc")+Pa("M0 174Q50 150 100 174T200 174V200H0Z","#e0d6c6")],
+"낮잠":(a,b)=>["#c9c4dc","#efe9e2",C(146,54,24,"#fff8e6")+C(156,48,22,"#cfc9df")+L(8,i=>C(14+(i*37)%150,14+(i*23)%70,1.3,"#fff",.9))+Q(20,118,160,64,"#fff",1,26)+Pa("M20 150Q70 128 110 150T180 146V182H20Z",b,.5)],
+"무화과잎":(a)=>["#eaf3dc",a,Pa("M100 190V128","none",1,"#4f8a48",4)+Pa("M100 128C62 132 40 104 58 74C70 86 82 82 88 64C92 50 100 34 100 34C100 34 108 50 112 64C118 82 130 86 142 74C160 104 138 132 100 128Z","#4f8a48")+Pa("M100 128V50M100 112L70 92M100 112L130 92M100 90L84 76M100 90L116 76","none",.5,"#d6ecc4",1.6)],
+"이끼":(a,b)=>["#dfe6d3","#b9c4a4",E(100,150,84,46,"#8c8f86")+L(30,i=>C(30+i*5.4,124-Math.sin(i/29*3.14)*34+(i*13)%10,6+i%3*2,i%2?b:"#7fae67",.95))],
+"바질":()=>["#f0f4e6","#dbe6c6",Pa("M100 200V40","none",1,"#4f7d3f",3)+L(4,i=>E(76,160-i*30,24-i*2,11-i,"#3f7d3a",.95,-28)+E(124,160-i*30,24-i*2,11-i,"#4a8a44",.95,28))+E(100,34,10,18,"#3f7d3a")],
+"비 갠 오후":()=>["#cfe3ee","#eaf5e2",["#e58a8a","#f0c987","#f5eb9a","#a7d99b","#8cc4e8"].map((c,i)=>Pa(`M${10+i*7} 180A${90-i*7} ${90-i*7} 0 0 1 ${190-i*7} 180`,"none",.55,c,6)).join("")+E(100,186,92,14,"#fff",.6)+Hl(190,"#a7d08e",.9)],
+"숲길":()=>["#dfeccf","#9dbb85",Pa("M124 0H164L128 200H90Z","#fff",.18)+Pa("M84 200L98 96H102L142 200Z","#e4d6b8")+Q(24,40,10,160,"#4d6b46")+Q(52,70,7,130,"#5a7a52")+Q(162,30,10,170,"#4d6b46")+Q(140,80,7,120,"#5a7a52")+E(100,80,70,30,"#7fa46a",.5)],
+"피크닉":(a,b,n)=>["#dcecc9","#a9cd8f",`<defs><pattern id="k${n}" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#d9603b"/><rect x="8" y="8" width="8" height="8" fill="#d9603b"/></pattern></defs>`+Pa("M14 200L44 110H172L198 200Z","#fff")+Pa("M14 200L44 110H172L198 200Z",`url(#k${n})`,.9)+Q(84,92,52,34,"#b98d5c",1,5)+Pa("M92 92Q110 66 128 92","none",1,"#8a5f34",3)+C(56,140,8,"#c9403a")+C(150,146,8,"#e8a13a")],
+"바닐라":()=>["#f6ead6","#e6cfa8",Pa("M26 184C70 122 122 84 176 30","none",1,"#3b261b",7)+Pa("M60 196C100 140 140 110 190 70","none",1,"#4a3024",6)+Pt(62,62,5,9,17,15,"#fff8e0",.98)+C(62,62,5,"#f0c860")],
+"카라멜":()=>["#f6e3c4","#e2b77c",Pa("M0 0H200V56Q190 56 186 92Q180 56 160 56Q150 56 146 116Q140 56 112 56Q102 56 98 150Q92 56 62 56Q52 56 46 100Q40 56 0 56Z","#b8641a")+E(100,192,86,12,"#b8641a",.9)+Pa("M30 20H170","none",.35,"#ffd08a",4)],
+"통카빈":()=>["#e9dcc9","#c7b394",E(68,104,20,36,"#3a2a20",1,-22)+E(112,124,20,36,"#2e2019",1,24)+E(142,80,18,32,"#43301f",1,10)+Pa("M62 80Q70 104 60 128M108 100Q118 124 112 148","none",.5,"#7a5a3f",1.2)+E(62,92,4,10,"#fff",.25,-22)],
+"겨울 카페":()=>["#2b2a30","#3c342e",Q(20,20,160,108,"#1e2a3a",1,4)+L(20,i=>C(24+(i*53)%152,24+(i*31)%100,1.6,"#fff",.85))+Pa("M100 20V128M20 74H180","none",.7,"#3c342e",4)+Q(0,140,200,60,"#5a3d2b")+Q(72,112,56,30,"#fff",1,7)+Pa("M90 100Q84 88 92 78M108 100Q102 88 110 78","none",.6,"#fff",2.4)+C(30,150,40,"#ff9a3c",.12)],
+"비 오는 밤":(a,b,n)=>["#0f1a2b","#24344c",`<g filter="url(#z${n})">`+L(16,i=>C(12+(i*47)%180,60+(i*31)%110,7+i%4*3,["#ff9a3c","#f0d060","#e85a7a","#6ab8ff"][i%4],.7))+"</g>"+L(22,i=>Pa(`M${8+(i*37)%190} ${(i*53)%150}l-6 22`,"none",.3,"#fff",1))],
+"디저트":()=>["#f9e8ea","#f0cdd0",E(100,164,84,16,"#fff")+Pa("M40 158V104L152 126V158Z","#f3d9a8")+Q(40,128,112,8,"#fff")+Pa("M40 104L152 126V116L40 94Z","#8b4b3a")+C(74,92,8,"#c62f3a")+Pa("M74 84Q78 74 86 72","none",1,"#4f7a3a",2)],
+"바닷바람":(a,b)=>["#cfeaf6","#eaf7fb",Pa("M100 40V132L152 132Z","#fff")+Pa("M94 62L58 132H94Z","#f1f6f8")+Pa("M52 136H158L142 158H68Z",b)+Hl(160,b,.5)+Hl(180,a,.9)+Pa("M10 40H70M30 60H90M120 30H190M140 52H180","none",.8,"#fff",3)],
+"씨솔트":()=>["#f1f6f7","#dbe6ea",L(34,i=>{const x=14+(i*47)%172,y=14+(i*29)%172,r=4+i%3*2;return Pa(`M${x} ${y-r}L${x+r} ${y}L${x} ${y+r}L${x-r} ${y}Z`,"#fff",.95,"#b8c9d0",.7)})],
+"연꽃":()=>["#bfe0e8","#7fb7c4",E(46,150,36,10,"#3f7d5a",.9)+E(160,162,32,9,"#3f7d5a",.9)+E(100,146,50,8,"#fff",.25)+Pt(100,126,7,12,30,26,"#ffd6e2",.95)+Pt(100,126,5,10,22,14,"#fff",.95,36)+C(100,124,7,"#f3d36b")],
+"여름 바다":()=>["#7ec8ee","#e6f5fb",C(140,58,22,"#fff6c8")+Q(0,108,200,92,"#2f7fb0")+Pa("M0 130Q25 122 50 130T100 130T150 130T200 130","none",.5,"#fff",2)+Pa("M0 156Q25 148 50 156T100 156T150 156T200 156","none",.4,"#fff",2)+Pa("M126 116H154","none",.8,"#fff6c8",2)],
+"휴가":()=>["#bfe6f5","#f7f3e2",Q(0,118,200,22,"#5fb4d8")+Hl(160,"#f3e3b8")+Pa("M128 168Q122 110 140 60","none",1,"#7a5a3a",5)+Pt(140,58,6,4,26,24,"#3f8a4f")+Pa("M30 150L44 104","none",1,"#7a5a3a",2)+Pa("M18 108Q44 70 72 108Z","#e0574f")],
+"바람":()=>["#a9d8ee","#eaf7fb",Pa("M112 26L142 66L112 118L82 66Z","#f2b84b")+Pa("M112 26V118M82 66H142","none",.6,"#b8791f",1.2)+Pa("M112 118C100 150 130 160 110 190","none",1,"#fff",1.6)+C(106,150,4,"#e0574f")+C(116,172,4,"#3f86b8")+Pa("M14 60H60M30 84H80M140 120H190M120 150H170","none",.8,"#fff",3)],
+"앰버":(a,b,n)=>["#2a1512","#4a2419",`<g filter="url(#z${n})">`+C(100,100,64,"#ffb95a",.3)+"</g>"+Pa("M100 40L152 80L136 152H64L48 80Z","#e8912e")+Pa("M100 40V152M48 80H152M100 40L64 152M100 40L136 152","none",.45,"#ffd08a",1.2)],
+"인센스":()=>["#2b1e1a","#4a3228",Q(36,184,64,9,"#a8703c",1,3)+Pa("M62 186L124 80","none",1,"#7a4f30",3)+C(124,78,3.4,"#ff8a3c")+Pa("M124 74C102 50 144 36 122 8","none",.55,"#f0e2d0",3)+Pa("M128 72C150 52 112 34 136 12","none",.35,"#f0e2d0",3)],
+"벤조인":()=>["#f0d4a8","#c78d4a",[[60,80,1],[112,64,1.15],[152,108,.9],[92,128,1.25],[48,156,.9],[136,158,1]].map(p=>{const x=p[0],y=p[1],s=p[2];return Pa(`M${x} ${y-16*s}C${x+13*s} ${y} ${x+13*s} ${y+12*s} ${x} ${y+12*s}C${x-13*s} ${y+12*s} ${x-13*s} ${y} ${x} ${y-16*s}Z`,"#b9611f",.95)+E(x-4*s,y,2.5*s,5*s,"#fff",.4)}).join("")],
+"늦은 밤":()=>["#121a33","#2b2a4a",C(144,54,22,"#fff3d2")+L(16,i=>C(8+(i*47)%150,8+(i*29)%80,1.2,"#fff",.85))+L(10,i=>Q(i*20,150-(i*37)%46,17,200,"#0b0f1f"))+L(12,i=>Q(6+(i*29)%176,160+(i*13)%30,3,3,"#f5c85a",.9))],
+"촛불":(a,b,n)=>["#1a0f0d","#3a1d16",`<g filter="url(#z${n})">`+C(100,96,70,"#ff9a3c",.32)+"</g>"+Q(88,112,24,84,"#f6ead6",1,3)+E(100,94,7,16,"#ffd36b")+E(100,98,3.5,8,"#fff3c0")+Pa("M100 110V104","none",1,"#3a2a20",1.6)],
+"특별한 자리":()=>["#2a1418","#5a2a2c",Q(0,152,200,48,"#f3e6d4")+[70,130].map(x=>E(x,112,19,27,"#f8dfe0",.35)+E(x,120,16,17,"#7b1e2e",.92)+Q(x-1,138,2,24,"#eee",.85)+E(x,162,15,3,"#eee")).join("")+L(9,i=>C(14+(i*43)%176,14+(i*31)%80,1.4,"#f5d59a",.8))],
+x:a=>[a,"#fff",""]};
+const ph=(s,w,k)=>{const n=u++,[a,b]=s.c,[t,m,x]=(PH[w]||PH.x)(a,b,n);return`<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="q${n}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t}"/><stop offset="1" stop-color="${m}"/></linearGradient><filter id="n${n}"><feTurbulence baseFrequency=".85" numOctaves="2"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0"/></filter><filter id="z${n}"><feGaussianBlur stdDeviation="4"/></filter><radialGradient id="v${n}"><stop offset=".6" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></radialGradient></defs><rect width="200" height="200" fill="url(#q${n})"/>${x}<rect width="200" height="200" fill="url(#v${n})"/><rect width="200" height="200" filter="url(#n${n})" opacity=".3"/></svg>`};
+let curScent=null,curIdx=-1,curScentIdx=null;
+const SB_URL='https://zhvrlnbzrdzwywndbjga.supabase.co';
+const SB_KEY='sb_publishable_yjgeUyPUg4fcdT1qj4B-3Q_2lsQgfIB';
+const SB_HEAD={apikey:SB_KEY,Authorization:'Bearer '+SB_KEY};
+let LIVE=null,LIVE_ERR=false;
+async function loadLive(){
+  try{
+    const res=await fetch(SB_URL+'/rest/v1/perfumes?select=scent_key,brand,name,notes,sort_order&order=scent_key.asc,sort_order.asc',{headers:SB_HEAD});
+    if(!res.ok)throw new Error(res.status);
+    const rows=await res.json();
+    const map={};
+    rows.forEach(r=>{(map[r.scent_key]=map[r.scent_key]||[]).push(r)});
+    LIVE=map;
+  }catch(e){LIVE_ERR=true}
+  refreshProducts();
+}
+function dbLabel(){
+  if(LIVE)return'DB: SUPABASE 연결됨 · 실시간 데이터';
+  if(LIVE_ERR)return'DB: 연결 실패 · 로컬 데이터 표시 중';
+  return'DB: 연결 확인 중…';
+}
+function prodsHTML(s){
+  const rows=LIVE&&LIVE[s.k];
+  const P=rows?rows.map(r=>[r.brand,r.name,r.notes]):s.p.map(x=>x.split('|'));
+  return P.map((p,j)=>`<div class="pc">${bottle(s,j)}<small>ITEM: 0${j+1}</small><small><b>${p[0]}</b></small><small>${p[1]}</small><small>${p[2]}</small></div>`).join('');
+}
+function refreshProducts(){
+  if(curScentIdx==null||V.d.hidden)return;
+  const s=S[curScentIdx];
+  const el=document.getElementById('prodWrap');if(el)el.innerHTML=prodsHTML(s);
+  const lb=document.getElementById('dbStatus');if(lb)lb.textContent=dbLabel();
+}
+
+// ---- Auth (Supabase GoTrue, JWT 기반 로그인) ----
+let authUser=null,authToken=null,authRefresh=null,authMode='login';
+function loadSession(){
+  try{
+    const raw=localStorage.getItem('ds_session');if(!raw)return;
+    const s=JSON.parse(raw);authUser=s.user;authToken=s.access_token;authRefresh=s.refresh_token;
+  }catch(e){}
+}
+function saveSession(d){
+  authUser=d.user;authToken=d.access_token;authRefresh=d.refresh_token;
+  try{localStorage.setItem('ds_session',JSON.stringify({user:d.user,access_token:d.access_token,refresh_token:d.refresh_token}))}catch(e){}
+  renderAuthBtn();
+}
+function clearSession(){
+  authUser=null;authToken=null;authRefresh=null;
+  try{localStorage.removeItem('ds_session')}catch(e){}
+  renderAuthBtn();
+}
+function renderAuthBtn(){
+  const b=$('#authBtn');if(!b)return;
+  if(authUser){const n=(authUser.email||'').split('@')[0];b.textContent=(n.length>9?n.slice(0,9)+'…':n)+' · LOGOUT'}
+  else b.textContent='LOGIN';
+}
+function openAuth(mode){
+  authMode=mode;
+  $('#amTitle').textContent=mode==='login'?'LOGIN':'SIGN UP';
+  $('#amSubmit').textContent=mode==='login'?'LOGIN':'SIGN UP';
+  $('#amSwitch').textContent=mode==='login'?'계정이 없으신가요? 회원가입':'이미 계정이 있으신가요? 로그인';
+  $('#amErr').hidden=true;$('#amForm').reset();$('#authModal').hidden=false;$('#amEmail').focus();
+}
+function closeAuth(){$('#authModal').hidden=true}
+async function submitAuth(email,pass){
+  const path=authMode==='login'?'/auth/v1/token?grant_type=password':'/auth/v1/signup';
+  const res=await fetch(SB_URL+path,{method:'POST',headers:{...SB_HEAD,'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok){const e=new Error(data.error_description||data.msg||data.error||'요청에 실패했습니다 ('+res.status+')');e.bad=true;throw e}
+  if(data.access_token){saveSession(data);closeAuth();return}
+  const e=new Error('가입 완료! 이메일의 인증 링크를 확인한 뒤 로그인해 주세요.');e.bad=false;throw e;
+}
+async function doLogout(){
+  if(authToken)fetch(SB_URL+'/auth/v1/logout',{method:'POST',headers:{...SB_HEAD,Authorization:'Bearer '+authToken}}).catch(()=>{});
+  clearSession();
+}
+function ytSrc(title,artist){return 'https://www.youtube.com/embed?autoplay=1&rel=0&modestbranding=1&listType=search&list='+encodeURIComponent(title+' '+artist+' audio')}
+function openPlayer(sIdx,idx,title,artist){
+  curScent=sIdx;curIdx=idx;
+  $('#pTitle').textContent=title;$('#pArtist').textContent=artist;
+  $('#pExt').href=yt(title+' '+artist);
+  $('#ytf').src=ytSrc(title,artist);
+  $('#player').hidden=false;
+  document.body.style.paddingBottom='260px';
+  document.querySelectorAll('.rowbtn').forEach(b=>b.classList.toggle('on',+b.dataset.scent===sIdx&&+b.dataset.idx===idx));
+  pl=true;
+}
+function closePlayer(){
+  $('#player').hidden=true;$('#ytf').src='';document.body.style.paddingBottom='0';
+  document.querySelectorAll('.rowbtn.on').forEach(b=>b.classList.remove('on'));
+  curScent=null;curIdx=-1;pl=false;
+}
+function step(dir){
+  if(curScent==null||curIdx<0)return;
+  const list=S[curScent].t;let n=(curIdx+dir+list.length)%list.length;
+  const[title,artist]=list[n].split('|');
+  openPlayer(curScent,n,title,artist);
+}
+function show(v){closePlayer();for(const k in V)V[k].hidden=k!==v;R.dataset.v=v;scrollTo(0,0);ly=0;pl=false}
+
+V.h.innerHTML=`<h1 class="tt" style="font-size:${fs(11,12)}">DAILY SCENT</h1><p class="tg">DIVE INTO MY SCENTS — A SCENT A DAY, EVERY DAY.</p><div class="grid">${S.map((s,i)=>`<button class="cell" data-i="${i}">${cap(s)}<small>ITEM: 00${i+1}</small><small>${s.k}, ${s.ko}</small><small>${s.n.join(', ')}</small></button>`).join('')}</div>`;
+
+V.a.innerHTML=`<div class="abt"><div class="fc" style="left:2%;top:24px">${cap(S[0])}</div><div class="fc" style="right:1%;top:46%;animation-delay:-3s">${cap(S[6])}</div><div class="fc" style="left:3%;bottom:16px;animation-delay:-6s">${cap(S[2])}</div>
+<p>저는 향수를 모으고, 그 향에 어울리는 노래를 고르는 일을 좋아합니다.</p>
+<p>하루에 하나씩 오늘의 향과 오늘의 노래를 기록해 갑니다.</p>
+<p>모든 향수는 직접 뿌려 보고 솔직하게 소개해 드립니다.</p>
+<p>앞으로 더 많은 향과 플레이리스트를 차곡차곡 채워 가겠습니다.</p>
+<p>마음에 드셨다면 친구에게도 알려 주세요. 찾아 주셔서 감사합니다.</p></div>`;
+
+function go(i){
+  curScentIdx=i;
+  const s=S[i],T=s.t.map(x=>x.split('|')),P=s.p.map(x=>x.split('|')),w=[...s.n,...s.m.split(', ')];
+  const esc=v=>v.replace(/"/g,'&quot;');
+  const row=(x,j)=>`<div class="tr"><button type="button" class="rowbtn" data-scent="${i}" data-idx="${j}" data-title="${esc(x[0])}" data-artist="${esc(x[1])}"><span>${String(j+1).padStart(2,'0')}</span><span><b>${x[0]}</b><em>${x[1]}</em></span></button><a class="ext" href="${yt(x[0]+' '+x[1])}" target="_blank" rel="noopener" aria-label="유튜브에서 열기">↗</a></div>`;
+  const reel=x=>`<g class="reel"><circle cx="${x}" cy="149" r="14" fill="none" stroke="#111" stroke-width="3" stroke-dasharray="6 5"/></g>`;
+  V.d.innerHTML=`<h1 class="tt" style="font-size:${fs(s.k.length)}">${s.k}</h1>
+<p class="tg">DIVE INTO THE ${s.k} — A SCENT A DAY, EVERY DAY.</p>
+<section class="hero"><div class="im">${cap(s)}</div><div><p>ITEM: 00${i+1}</p><p>${s.k}, ${s.ko} 향</p><p>NOTES: ${s.n.join(', ')}</p><p>MOOD: ${s.m}</p><p class="ds">${s.d}</p><button class="btn" id="go">SEE PLAYLIST ↓</button></div></section>
+<div class="bar">PERFUMES FOR ${s.k}</div>
+<div class="dbs" id="dbStatus">${dbLabel()}</div>
+<div class="prods" id="prodWrap">${prodsHTML(s)}</div>
+<section class="epk">
+<h2 class="ol" style="font-size:${fs(s.k.length+4)}">${s.k} MIX</h2>
+<div class="ab"><span class="lb">ABOUT THE MIX</span><p>${s.ko} 향과 함께 고른 ${T.length}곡입니다. 향수를 뿌리고 재생해 보세요. 곡을 누르시면 유튜브에서 바로 들으실 수 있습니다.</p></div>
+<div class="row"><div class="cdc"><div class="cdw"><div class="cd">${sc(s,0)}</div><div class="sh"></div><div class="hole"></div></div></div>
+<div><span class="lb">TRACKLIST: SIDE A</span><div class="tl">${T.slice(0,6).map(row).join('')}</div><span class="lb">TRACKLIST: SIDE B</span><div class="tl">${T.slice(6).map((x,j)=>row(x,j+6)).join('')}</div><figure class="ph">${ph(s,w[3],0)}<figcaption>PHOTO: ${w[3]}, ${s.ko}</figcaption></figure></div></div>
+<div class="info"><div><span class="lb">INFO</span>SCENT: ${s.k}<br>TRACKS: ${T.length}<br>MOOD: ${s.m}</div><div><span class="lb">TRY WITH</span>${P[0][0]} ${P[0][1]}<br>${P[1][0]} ${P[1][1]}</div></div>
+<span class="lb">GALLERY</span><div class="gal">${[0,1,2,4,5].map(q=>`<figure>${ph(s,w[q],q)}<figcaption>${w[q]}</figcaption></figure>`).join('')}</div>
+<span class="lb">LISTEN ON</span>
+<div class="tape"><svg viewBox="0 0 320 200"><rect x="4" y="4" width="312" height="192" rx="14" fill="#fff" stroke="#111" stroke-width="1.5"/><rect x="28" y="20" width="264" height="92" rx="8" fill="${s.c[0]}"/><text x="160" y="62" text-anchor="middle" font-size="18" font-weight="700" fill="#111" font-family="Noto Sans KR,sans-serif">${s.ko}</text><text x="160" y="86" text-anchor="middle" font-size="10" fill="#333" font-family="Space Mono,monospace">side A / ${s.k.toLowerCase()}</text><rect x="86" y="124" width="148" height="50" rx="25" fill="#fff" stroke="#111"/>${reel(120)}${reel(200)}</svg></div>
+<div class="ls"><a href="${yt(s.k+' mix '+s.t[0])}" target="_blank" rel="noopener">YOUTUBE</a><a href="https://open.spotify.com/search/${encodeURIComponent(s.ko+' 플레이리스트')}" target="_blank" rel="noopener">SPOTIFY</a><a href="https://music.youtube.com/search?q=${encodeURIComponent(s.ko+' 플레이리스트')}" target="_blank" rel="noopener">YT MUSIC</a></div>
+</section>
+<div class="bar" style="margin-top:64px;border-top:1px solid var(--ln)">YOU MAY ALSO LIKE</div>
+<div class="prods">${S.map((x,k)=>k===i?'':`<button class="pc" data-i="${k}">${cap(x)}<small>${x.k}</small></button>`).join('')}</div>`;
+  show('d');spin=[...document.querySelectorAll('.cd,.reel')];
+}
+(function f(){const y=scrollY;ang+=(y-ly)*.45+(pl?.9:0);ly=y;if(!V.d.hidden)spin.forEach(e=>e.style.transform=`rotate(${ang}deg)`);requestAnimationFrame(f)})();
+loadLive();
+loadSession();renderAuthBtn();
+$('#amForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const email=$('#amEmail').value.trim(),pass=$('#amPass').value;
+  const btn=$('#amSubmit'),msg=$('#amErr');
+  btn.disabled=true;msg.hidden=true;
+  try{await submitAuth(email,pass)}
+  catch(err){msg.textContent=err.message;msg.style.color=err.bad===false?'var(--fg)':'#d5405f';msg.hidden=false}
+  btn.disabled=false;
+});
+document.addEventListener('click',e=>{
+  const t=e.target;
+  if(t.closest('#authBtn'))return authUser?doLogout():openAuth('login');
+  if(t.closest('#amClose'))return closeAuth();
+  if(t.closest('#amSwitch'))return openAuth(authMode==='login'?'signup':'login');
+  if(t.closest('#authModal')&&!t.closest('.am-card'))return closeAuth();
+  const i=t.closest('[data-i]');
+  if(i)return go(+i.dataset.i);
+  if(t.closest('#hm'))return show('h');
+  if(t.closest('#ab'))return show('a');
+  if(t.closest('#ct'))return $('footer').scrollIntoView({behavior:'smooth'});
+  if(t.closest('#go'))return $('.epk').scrollIntoView({behavior:'smooth'});
+  if(t.closest('#pClose'))return closePlayer();
+  if(t.closest('#pPrev'))return step(-1);
+  if(t.closest('#pNext'))return step(1);
+  const r=t.closest('.rowbtn');
+  if(r)return openPlayer(+r.dataset.scent,+r.dataset.idx,r.dataset.title,r.dataset.artist);
+});
+</script>
+</body>
+</html>

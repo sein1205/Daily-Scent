@@ -39,6 +39,10 @@ main{max-width:1100px;margin:0 auto;padding:0 14px 48px}main[hidden]{display:non
 .am-card input:focus-visible{outline:1px solid var(--fg)}
 .am-msg{font-size:10px;line-height:1.6;margin:-6px 0 14px}
 .am-switch{all:unset;display:block;width:100%;text-align:center;margin-top:14px;font-size:10px;color:var(--mut);cursor:pointer;text-decoration:underline}
+.hd button[hidden]{display:none}
+.btn.o{background:transparent;color:var(--fg);border:1px solid var(--fg);margin-top:8px}
+.btn.o:hover{background:var(--fg);color:var(--bg)}
+.hdb{text-align:center;font-size:9px;color:var(--mut);margin-top:10px}
 .prods{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(150px,1fr);overflow-x:auto;border:1px solid var(--ln);border-top:0;scroll-snap-type:x mandatory}
 .pc{all:unset;box-sizing:border-box;display:block;cursor:default;text-align:center;padding:22px 10px;border-right:1px solid var(--ln);scroll-snap-align:start}
 button.pc{cursor:pointer}
@@ -99,10 +103,11 @@ footer{max-width:1100px;margin:0 auto;padding:0 14px 28px;text-align:center}
 </style>
 </head>
 <body>
-<header class="hd"><button id="hm">⌂ HOME</button><span><button id="ab">ABOUT</button><button id="ct">CONTACT</button><button id="authBtn">LOGIN</button></span></header>
+<header class="hd"><button id="hm">⌂ HOME</button><span><button id="ab">ABOUT</button><button id="ct">CONTACT</button><button id="myBtn" hidden>MY</button><button id="authBtn">LOGIN</button></span></header>
 <main id="vh"></main>
 <main id="vd" hidden></main>
 <main id="va" hidden></main>
+<main id="vm" hidden></main>
 <div id="authModal" hidden>
   <div class="am-card">
     <button id="amClose" aria-label="닫기">✕</button>
@@ -166,7 +171,7 @@ t:["Midnight City|M83","Blinding Lights|The Weeknd","Redbone|Childish Gambino","
 ["Vanilla Twilight|Owl City","Peaches|Justin Bieber","Strawberry Fields Forever|The Beatles","Sweet Nothing|Calvin Harris","Dessert|Dawin"],
 ["Sail|AWOLNATION","Beyond the Sea|Bobby Darin","Surfin' U.S.A.|The Beach Boys","Pacific Coast Highway|Marina","California Dreamin'|The Mamas & the Papas"],
 ["Nights|Frank Ocean","Video Games|Lana Del Rey","Let's Get It On|Marvin Gaye","Cherry|Lana Del Rey","Only Love Can Hurt Like This|Paloma Faith"]].forEach((x,i)=>S[i].t.push(...x));
-const $=q=>document.querySelector(q),R=document.documentElement,V={h:$('#vh'),d:$('#vd'),a:$('#va')};
+const $=q=>document.querySelector(q),R=document.documentElement,V={h:$('#vh'),d:$('#vd'),a:$('#va'),m:$('#vm')};
 let u=0,ang=0,ly=0,pl=false,spin=[];
 const fs=(n,m=15)=>{const x=Math.min(m,88/(n*.75));return`min(${x}vw,${x*10.5}px)`};
 const yt=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q);
@@ -234,7 +239,7 @@ const ph=(s,w,k)=>{const n=u++,[a,b]=s.c,[t,m,x]=(PH[w]||PH.x)(a,b,n);return`<sv
 let curScent=null,curIdx=-1,curScentIdx=null;
 const SB_URL='https://zhvrlnbzrdzwywndbjga.supabase.co';
 const SB_KEY='sb_publishable_yjgeUyPUg4fcdT1qj4B-3Q_2lsQgfIB';
-const SB_HEAD={apikey:SB_KEY,Authorization:'Bearer '+SB_KEY};
+const SB_HEAD={apikey:SB_KEY};
 let LIVE=null,LIVE_ERR=false;
 async function loadLive(){
   try{
@@ -282,30 +287,91 @@ function clearSession(){
   try{localStorage.removeItem('ds_session')}catch(e){}
   renderAuthBtn();
 }
-function renderAuthBtn(){
-  const b=$('#authBtn');if(!b)return;
-  if(authUser){const n=(authUser.email||'').split('@')[0];b.textContent=(n.length>9?n.slice(0,9)+'…':n)+' · LOGOUT'}
-  else b.textContent='LOGIN';
-}
-function openAuth(mode){
+function renderAuthBtn(){const on=!!authUser;$('#myBtn').hidden=!on;$('#authBtn').textContent=on?'LOGOUT':'LOGIN'}
+function openAuth(mode,msg){
   authMode=mode;
   $('#amTitle').textContent=mode==='login'?'LOGIN':'SIGN UP';
   $('#amSubmit').textContent=mode==='login'?'LOGIN':'SIGN UP';
   $('#amSwitch').textContent=mode==='login'?'계정이 없으신가요? 회원가입':'이미 계정이 있으신가요? 로그인';
-  $('#amErr').hidden=true;$('#amForm').reset();$('#authModal').hidden=false;$('#amEmail').focus();
+  $('#amForm').reset();const m=$('#amErr');m.hidden=!msg;if(msg){m.textContent=msg;m.style.color='var(--fg)'}
+  $('#authModal').hidden=false;$('#amEmail').focus();
 }
 function closeAuth(){$('#authModal').hidden=true}
 async function submitAuth(email,pass){
-  const path=authMode==='login'?'/auth/v1/token?grant_type=password':'/auth/v1/signup';
+  const redir=location.protocol.startsWith('http')?'?redirect_to='+encodeURIComponent(location.origin+location.pathname):'';
+  const path=authMode==='login'?'/auth/v1/token?grant_type=password':'/auth/v1/signup'+redir;
   const res=await fetch(SB_URL+path,{method:'POST',headers:{...SB_HEAD,'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
   const data=await res.json().catch(()=>({}));
   if(!res.ok){const e=new Error(data.error_description||data.msg||data.error||'요청에 실패했습니다 ('+res.status+')');e.bad=true;throw e}
-  if(data.access_token){saveSession(data);closeAuth();return}
+  if(data.access_token){saveSession(data);closeAuth();loadFavs();return}
   const e=new Error('가입 완료! 이메일의 인증 링크를 확인한 뒤 로그인해 주세요.');e.bad=false;throw e;
 }
 async function doLogout(){
   if(authToken)fetch(SB_URL+'/auth/v1/logout',{method:'POST',headers:{...SB_HEAD,Authorization:'Bearer '+authToken}}).catch(()=>{});
-  clearSession();
+  clearSession();FAVS=new Set();FAVLIST=[];updateFavBtn();
+  if(!V.m.hidden)show('h');
+}
+// ---- JWT 만료 처리 + 로그인 사용자 전용 요청 ----
+let FAVS=new Set(),FAVLIST=[],refreshP=null;
+function jwtExp(t){try{return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).exp*1000}catch(e){return 0}}
+function refreshSession(){
+  if(!authRefresh)return Promise.resolve(false);
+  return refreshP=refreshP||(async()=>{
+    try{
+      const r=await fetch(SB_URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{...SB_HEAD,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:authRefresh})});
+      if(!r.ok)return false;
+      saveSession(await r.json());return true;
+    }catch(e){return false}finally{refreshP=null}
+  })();
+}
+async function authedFetch(path,opt={}){
+  if(!authToken)return new Response(null,{status:401});
+  if(jwtExp(authToken)<Date.now()+30000)await refreshSession();
+  const run=()=>fetch(SB_URL+path,{...opt,headers:{...SB_HEAD,'Content-Type':'application/json',...(opt.headers||{}),Authorization:'Bearer '+authToken}});
+  let r=await run();
+  if(r.status===401&&await refreshSession())r=await run();
+  if(r.status===401){clearSession();FAVS=new Set();FAVLIST=[];updateFavBtn();openAuth('login','로그인이 만료되었어요. 다시 로그인해 주세요')}
+  return r;
+}
+// ---- 찜하기 (favorites 테이블, RLS: 본인 행만) ----
+function updateFavBtn(){const b=$('#favBtn');if(b)b.textContent=FAVS.has(b.dataset.k)?'♥ 찜 해제':'♡ 찜하기'}
+async function loadFavs(){
+  FAVS=new Set();FAVLIST=[];
+  if(!authUser){updateFavBtn();return true}
+  try{
+    const r=await authedFetch('/rest/v1/favorites?select=scent_key,created_at&order=created_at.desc');
+    if(!r.ok)throw 0;
+    FAVLIST=(await r.json()).map(x=>x.scent_key);FAVS=new Set(FAVLIST);
+    updateFavBtn();return true;
+  }catch(e){updateFavBtn();return false}
+}
+async function toggleFav(k){
+  if(!authUser)return openAuth('login','찜하기는 로그인 후 사용할 수 있어요');
+  const had=FAVS.has(k);
+  const r=await authedFetch('/rest/v1/favorites'+(had?'?scent_key=eq.'+encodeURIComponent(k):''),had?{method:'DELETE'}:{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({scent_key:k})});
+  if(r.ok||r.status===409){if(had)FAVS.delete(k);else FAVS.add(k);FAVLIST=FAVLIST.filter(x=>x!==k);if(!had)FAVLIST.unshift(k);updateFavBtn()}
+  else if(r.status!==401)alert('저장에 실패했어요 ('+r.status+'). favorites 테이블 SQL을 실행했는지 확인해 주세요.');
+}
+async function showMy(){
+  if(!authUser)return openAuth('login','MY는 로그인 후 볼 수 있어요');
+  show('m');
+  const head=n=>`<h1 class="tt" style="font-size:${fs(2,12)}">MY</h1><span class="lb" style="text-align:center">${hx(authUser.email)}${n}</span>`;
+  V.m.innerHTML=head('')+'<p class="tg">불러오는 중…</p>';
+  const ok=await loadFavs();if(V.m.hidden)return;
+  const ids=FAVLIST.map(k=>S.findIndex(s=>s.k===k)).filter(i=>i>=0);
+  V.m.innerHTML=head(' · 찜 '+ids.length)+(!ok?'<p class="tg">찜 목록을 불러오지 못했어요.<br>favorites 테이블이 만들어져 있는지 확인해 주세요.</p>':ids.length?`<div class="grid">${ids.map(cell).join('')}</div>`:'<p class="tg">아직 찜한 향이 없어요.<br>향 상세에서 ♡ 찜하기를 눌러 보세요.</p>');
+}
+// ---- 인증 메일 링크로 돌아왔을 때(#access_token=...) 자동 로그인 ----
+async function authRedirect(){
+  const p=new URLSearchParams(location.hash.slice(1)),at=p.get('access_token'),er=p.get('error_description');
+  if(!at&&!er)return;
+  history.replaceState(null,'',location.pathname+location.search);
+  if(er)return openAuth('login',er);
+  try{
+    const r=await fetch(SB_URL+'/auth/v1/user',{headers:{...SB_HEAD,Authorization:'Bearer '+at}});
+    if(!r.ok)throw 0;
+    saveSession({access_token:at,refresh_token:p.get('refresh_token'),user:await r.json()});loadFavs();
+  }catch(e){openAuth('login','인증 정보를 확인하지 못했어요. 다시 로그인해 주세요')}
 }
 function ytSrc(title,artist){return 'https://www.youtube.com/embed?autoplay=1&rel=0&modestbranding=1&listType=search&list='+encodeURIComponent(title+' '+artist+' audio')}
 function openPlayer(sIdx,idx,title,artist){
@@ -331,7 +397,21 @@ function step(dir){
 }
 function show(v){closePlayer();for(const k in V)V[k].hidden=k!==v;R.dataset.v=v;scrollTo(0,0);ly=0;pl=false}
 
-V.h.innerHTML=`<h1 class="tt" style="font-size:${fs(11,12)}">DAILY SCENT</h1><p class="tg">DIVE INTO MY SCENTS — A SCENT A DAY, EVERY DAY.</p><div class="grid">${S.map((s,i)=>`<button class="cell" data-i="${i}">${cap(s)}<small>ITEM: 00${i+1}</small><small>${s.k}, ${s.ko}</small><small>${s.n.join(', ')}</small></button>`).join('')}</div>`;
+let SC_OK=false,SC_ERR=false;
+const hx=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function cell(i){const s=S[i];return`<button class="cell" data-i="${i}">${cap(s)}<small>ITEM: 00${i+1}</small><small>${s.k}, ${s.ko}</small><small>${s.n.join(', ')}</small></button>`}
+function scLabel(){return SC_OK?'DB: SUPABASE 연결됨 · scents 실시간 데이터':SC_ERR?'DB: 연결 실패 · 로컬 데이터 표시 중':'DB: 연결 확인 중…'}
+function renderHome(){V.h.innerHTML=`<h1 class="tt" style="font-size:${fs(11,12)}">DAILY SCENT</h1><p class="tg">DIVE INTO MY SCENTS — A SCENT A DAY, EVERY DAY.</p><div class="grid">${S.map((s,i)=>cell(i)).join('')}</div><p class="hdb">${scLabel()}</p>`}
+async function loadScents(){
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/scents?select=key,name_ko,color_from,color_to,notes,mood,description',{headers:SB_HEAD});
+    if(!r.ok)throw 0;
+    (await r.json()).forEach(x=>{const s=S.find(v=>v.k===x.key);if(s){s.ko=x.name_ko;s.c=[x.color_from,x.color_to];s.n=x.notes;s.m=x.mood;s.d=x.description}});
+    SC_OK=true;
+  }catch(e){SC_ERR=true}
+  renderHome();
+}
+renderHome();
 
 V.a.innerHTML=`<div class="abt"><div class="fc" style="left:2%;top:24px">${cap(S[0])}</div><div class="fc" style="right:1%;top:46%;animation-delay:-3s">${cap(S[6])}</div><div class="fc" style="left:3%;bottom:16px;animation-delay:-6s">${cap(S[2])}</div>
 <p>저는 향수를 모으고, 그 향에 어울리는 노래를 고르는 일을 좋아합니다.</p>
@@ -348,7 +428,7 @@ function go(i){
   const reel=x=>`<g class="reel"><circle cx="${x}" cy="149" r="14" fill="none" stroke="#111" stroke-width="3" stroke-dasharray="6 5"/></g>`;
   V.d.innerHTML=`<h1 class="tt" style="font-size:${fs(s.k.length)}">${s.k}</h1>
 <p class="tg">DIVE INTO THE ${s.k} — A SCENT A DAY, EVERY DAY.</p>
-<section class="hero"><div class="im">${cap(s)}</div><div><p>ITEM: 00${i+1}</p><p>${s.k}, ${s.ko} 향</p><p>NOTES: ${s.n.join(', ')}</p><p>MOOD: ${s.m}</p><p class="ds">${s.d}</p><button class="btn" id="go">SEE PLAYLIST ↓</button></div></section>
+<section class="hero"><div class="im">${cap(s)}</div><div><p>ITEM: 00${i+1}</p><p>${s.k}, ${s.ko} 향</p><p>NOTES: ${s.n.join(', ')}</p><p>MOOD: ${s.m}</p><p class="ds">${s.d}</p><button class="btn" id="go">SEE PLAYLIST ↓</button><button class="btn o" id="favBtn" data-k="${s.k}">${FAVS.has(s.k)?'♥ 찜 해제':'♡ 찜하기'}</button></div></section>
 <div class="bar">PERFUMES FOR ${s.k}</div>
 <div class="dbs" id="dbStatus">${dbLabel()}</div>
 <div class="prods" id="prodWrap">${prodsHTML(s)}</div>
@@ -368,8 +448,8 @@ function go(i){
   show('d');spin=[...document.querySelectorAll('.cd,.reel')];
 }
 (function f(){const y=scrollY;ang+=(y-ly)*.45+(pl?.9:0);ly=y;if(!V.d.hidden)spin.forEach(e=>e.style.transform=`rotate(${ang}deg)`);requestAnimationFrame(f)})();
-loadLive();
-loadSession();renderAuthBtn();
+loadLive();loadScents();
+loadSession();renderAuthBtn();authRedirect();if(authUser)loadFavs();
 $('#amForm').addEventListener('submit',async e=>{
   e.preventDefault();
   const email=$('#amEmail').value.trim(),pass=$('#amPass').value;
@@ -382,6 +462,8 @@ $('#amForm').addEventListener('submit',async e=>{
 document.addEventListener('click',e=>{
   const t=e.target;
   if(t.closest('#authBtn'))return authUser?doLogout():openAuth('login');
+  if(t.closest('#myBtn'))return showMy();
+  const fb=t.closest('#favBtn');if(fb)return toggleFav(fb.dataset.k);
   if(t.closest('#amClose'))return closeAuth();
   if(t.closest('#amSwitch'))return openAuth(authMode==='login'?'signup':'login');
   if(t.closest('#authModal')&&!t.closest('.am-card'))return closeAuth();

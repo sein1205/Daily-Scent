@@ -74,7 +74,13 @@ button.pc svg{width:70px;height:70px}
 .p-top b{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .p-top em{font-style:normal;color:var(--mut);font-size:10px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #pClose{all:unset;cursor:pointer;font-size:14px;flex:none;padding:2px 4px}
-.p-frame{width:100%;max-width:480px;margin:0 auto;aspect-ratio:16/9;background:#000}
+.p-top img{width:44px;height:44px;flex:none;object-fit:cover;border:1px solid var(--ln)}
+.p-top img[hidden]{display:none}
+.p-top div{flex:1}
+#pBar{display:block;max-width:480px;height:6px;margin:0 auto;background:var(--ln);cursor:pointer}
+#pFill{display:block;height:100%;width:0;background:var(--fg)}
+.p-frame{width:100%;max-width:356px;margin:0 auto 8px;aspect-ratio:16/9;background:#000}
+.p-frame[hidden],#pBar[hidden]{display:none}
 .p-frame iframe{width:100%;height:100%;border:0;display:block}
 .p-ctrl{display:flex;align-items:center;justify-content:center;gap:22px;max-width:480px;margin:8px auto 0;font:12px 'Archivo Black',sans-serif}
 .p-ctrl button{all:unset;cursor:pointer;font-size:16px}
@@ -122,9 +128,11 @@ footer{max-width:1100px;margin:0 auto;padding:0 14px 28px;text-align:center}
   </div>
 </div>
 <div id="player" hidden>
-  <div class="p-top"><div><b id="pTitle"></b><em id="pArtist"></em></div><button id="pClose" aria-label="닫기">✕ CLOSE</button></div>
-  <div class="p-frame"><iframe id="ytf" src="" title="player" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe></div>
-  <div class="p-ctrl"><button id="pPrev" aria-label="이전 곡">⏮</button><button id="pNext" aria-label="다음 곡">⏭</button><a id="pExt" href="#" target="_blank" rel="noopener">유튜브 앱에서 열기 ↗</a></div>
+  <audio id="aud" preload="none"></audio>
+  <div class="p-top"><img id="pArt" alt="" hidden><div><b id="pTitle"></b><em id="pArtist"></em></div><button id="pClose" aria-label="닫기">✕ CLOSE</button></div>
+  <div class="p-frame" id="ytWrap" hidden><div id="ytBox"></div></div>
+  <div id="pBar"><i id="pFill"></i></div>
+  <div class="p-ctrl"><button id="pPrev" aria-label="이전 곡">⏮</button><button id="pPlay" aria-label="재생/일시정지">▶</button><button id="pNext" aria-label="다음 곡">⏭</button><a id="pExt" href="#" target="_blank" rel="noopener">YouTube에서 전체 듣기 ↗</a></div>
 </div>
 <footer><p class="mb">MADE BY ME</p><nav class="big"><a href="#">INSTA</a><a href="#">SPOTIFY</a><a href="#">YOUTUBE</a><a href="#">EMAIL</a></nav><div class="fb"><span>DAILY SCENT</span><span>©2026</span></div></footer>
 
@@ -373,28 +381,90 @@ async function authRedirect(){
     saveSession({access_token:at,refresh_token:p.get('refresh_token'),user:await r.json()});loadFavs();
   }catch(e){openAuth('login','인증 정보를 확인하지 못했어요. 다시 로그인해 주세요')}
 }
-function ytSrc(title,artist){return 'https://www.youtube.com/embed?autoplay=1&rel=0&modestbranding=1&listType=search&list='+encodeURIComponent(title+' '+artist+' audio')}
-function openPlayer(sIdx,idx,title,artist){
-  curScent=sIdx;curIdx=idx;
-  $('#pTitle').textContent=title;$('#pArtist').textContent=artist;
-  $('#pExt').href=yt(title+' '+artist);
-  $('#ytf').src=ytSrc(title,artist);
+// ---- 페이지 안 재생: ① YouTube 공식 임베드(전체 곡) ② Apple iTunes 30초 미리듣기(대체) ----
+const YT_KEY='';// YouTube Data API v3 키(선택). 비워 두면 30초 미리듣기만 사용
+const aud=$('#aud'),PV={};let curToken=0,mode='pv',ytp=null,ytReady=null,errRun=0,ITERR=false,YV={};
+try{YV=JSON.parse(localStorage.getItem('ds_yt')||'{}')}catch(e){}
+function jsonp(url){return new Promise((ok,no)=>{const cb='itcb'+Date.now()+Math.floor(Math.random()*1e4),s=document.createElement('script');window[cb]=d=>{ok(d);s.remove();delete window[cb]};s.onerror=()=>{no();s.remove();delete window[cb]};s.src=url+'&callback='+cb;document.head.appendChild(s)})}
+async function itunes(term,country){
+  const u='https://itunes.apple.com/search?media=music&entity=song&limit=5&country='+country+'&term='+encodeURIComponent(term);
+  try{const r=await fetch(u);if(r.ok)return(await r.json()).results||[]}catch(e){}
+  try{return(await jsonp(u)).results||[]}catch(e){ITERR=true;return[]}
+}
+async function findPreview(title,artist){
+  const k=title+'|'+artist;if(k in PV)return PV[k];
+  const first=artist.split(/[&,]/)[0].trim().toLowerCase(),tt=title.replace(/\(.*\)/,'').trim().toLowerCase();
+  const pick=l=>l.find(x=>x.artistName.toLowerCase().includes(first))||l.find(x=>x.trackName.toLowerCase().includes(tt));
+  let all=(await itunes(title+' '+artist,'KR')).filter(x=>x.previewUrl),hit=pick(all);
+  if(!hit){all=all.concat((await itunes(title+' '+artist,'US')).filter(x=>x.previewUrl));hit=pick(all)}
+  return hit?(PV[k]={url:hit.previewUrl,art:hit.artworkUrl100}):null;
+}
+async function ytFind(title,artist){
+  const k=title+'|'+artist;if(YV[k])return YV[k];
+  const r=await fetch('https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&videoCategoryId=10&maxResults=1&q='+encodeURIComponent(title+' '+artist)+'&key='+YT_KEY);
+  if(!r.ok)throw new Error(r.status);
+  const id=((await r.json()).items||[]).map(x=>x.id.videoId)[0];
+  if(id){YV[k]=id;try{localStorage.setItem('ds_yt',JSON.stringify(YV))}catch(e){}}
+  return id||null;
+}
+function ytLoad(){return ytReady=ytReady||new Promise(ok=>{
+  window.onYouTubeIframeAPIReady=()=>{ytp=new YT.Player('ytBox',{width:'100%',height:'100%',playerVars:{playsinline:1,rel:0},events:{onReady:ok,
+    onStateChange:e=>{if(e.data===0)step(1);if(e.data===1)errRun=0;syncPlayBtn()},
+    onError:()=>{if(++errRun<S[curScent].t.length)step(1)}}})};
+  const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);
+})}
+function syncPlayBtn(){const on=mode==='yt'?!!(ytp&&ytp.getPlayerState&&ytp.getPlayerState()===1):!aud.paused;$('#pPlay').textContent=on?'❚❚':'▶';pl=on}
+function togglePlay(){
+  if(mode==='yt'&&ytp){ytp.getPlayerState()===1?ytp.pauseVideo():ytp.playVideo();setTimeout(syncPlayBtn,200);return}
+  if(aud.getAttribute('src'))aud.paused?aud.play():aud.pause();
+}
+async function openPlayer(sIdx,idx,title,artist,dir=0,tries=0){
+  curScent=sIdx;curIdx=idx;const tok=++curToken;ITERR=false;
+  $('#pTitle').textContent=title;$('#pArtist').textContent=artist+' · 찾는 중…';
+  $('#pExt').href=yt(title+' '+artist);$('#pArt').hidden=true;$('#pFill').style.width='0';
   $('#player').hidden=false;
-  document.body.style.paddingBottom='260px';
   document.querySelectorAll('.rowbtn').forEach(b=>b.classList.toggle('on',+b.dataset.scent===sIdx&&+b.dataset.idx===idx));
-  pl=true;
+  aud.pause();
+  if(YT_KEY){
+    let id=null;try{id=await ytFind(title,artist)}catch(e){}
+    if(tok!==curToken)return;
+    if(id){
+      mode='yt';$('#ytWrap').hidden=false;$('#pBar').hidden=true;document.body.style.paddingBottom='340px';
+      await ytLoad();if(tok!==curToken)return;
+      ytp.loadVideoById(id);$('#pArtist').textContent=artist+' · YouTube 공식 플레이어';
+      setTimeout(syncPlayBtn,600);return;
+    }
+  }
+  mode='pv';$('#ytWrap').hidden=true;$('#pBar').hidden=false;document.body.style.paddingBottom='120px';
+  if(ytp&&ytp.stopVideo)ytp.stopVideo();
+  const v=await findPreview(title,artist);
+  if(tok!==curToken)return;
+  if(!v){
+    const list=S[sIdx].t;
+    if(dir&&tries<list.length-1){await new Promise(r=>setTimeout(r,400));if(tok!==curToken)return;const n=(idx+dir+list.length)%list.length,[t2,a2]=list[n].split('|');return openPlayer(sIdx,n,t2,a2,dir,tries+1)}
+    $('#pArtist').textContent=ITERR?'미리듣기 서버에 연결하지 못했어요 (네트워크·차단 확인) · 오른쪽 YouTube 링크를 이용해 주세요':'미리듣기를 찾지 못했어요 · 오른쪽 YouTube 링크를 이용해 주세요';return;
+  }
+  aud.src=v.url;$('#pArtist').textContent=artist+' · 30초 미리듣기';
+  $('#pArt').src=v.art;$('#pArt').hidden=false;
+  try{await aud.play()}catch(e){$('#pArtist').textContent=artist+' · ▶ 를 눌러 재생해 주세요'}
+  syncPlayBtn();
 }
 function closePlayer(){
-  $('#player').hidden=true;$('#ytf').src='';document.body.style.paddingBottom='0';
+  curToken++;aud.pause();aud.removeAttribute('src');aud.load();
+  if(ytp&&ytp.stopVideo)ytp.stopVideo();$('#ytWrap').hidden=true;
+  $('#player').hidden=true;document.body.style.paddingBottom='0';
   document.querySelectorAll('.rowbtn.on').forEach(b=>b.classList.remove('on'));
   curScent=null;curIdx=-1;pl=false;
 }
 function step(dir){
   if(curScent==null||curIdx<0)return;
-  const list=S[curScent].t;let n=(curIdx+dir+list.length)%list.length;
-  const[title,artist]=list[n].split('|');
-  openPlayer(curScent,n,title,artist);
+  const list=S[curScent].t,n=(curIdx+dir+list.length)%list.length,[t,a]=list[n].split('|');
+  openPlayer(curScent,n,t,a,dir);
 }
+aud.addEventListener('play',syncPlayBtn);
+aud.addEventListener('pause',syncPlayBtn);
+aud.addEventListener('ended',()=>step(1));
+aud.addEventListener('timeupdate',()=>{if(aud.duration)$('#pFill').style.width=(aud.currentTime/aud.duration*100)+'%'});
 function show(v){closePlayer();for(const k in V)V[k].hidden=k!==v;R.dataset.v=v;scrollTo(0,0);ly=0;pl=false}
 
 let SC_OK=false,SC_ERR=false;
@@ -434,7 +504,7 @@ function go(i){
 <div class="prods" id="prodWrap">${prodsHTML(s)}</div>
 <section class="epk">
 <h2 class="ol" style="font-size:${fs(s.k.length+4)}">${s.k} MIX</h2>
-<div class="ab"><span class="lb">ABOUT THE MIX</span><p>${s.ko} 향과 함께 고른 ${T.length}곡입니다. 향수를 뿌리고 재생해 보세요. 곡을 누르시면 유튜브에서 바로 들으실 수 있습니다.</p></div>
+<div class="ab"><span class="lb">ABOUT THE MIX</span><p>${s.ko} 향과 함께 고른 ${T.length}곡입니다. 향수를 뿌리고 재생해 보세요. 곡을 누르시면 이 페이지에서 30초 미리듣기(Apple iTunes 제공)를 들으실 수 있고, 오른쪽 ↗를 누르시면 유튜브에서 전체 곡을 들으실 수 있습니다.</p><button class="btn o" id="playAll" style="max-width:280px">▶ 플레이리스트 재생</button></div>
 <div class="row"><div class="cdc"><div class="cdw"><div class="cd">${sc(s,0)}</div><div class="sh"></div><div class="hole"></div></div></div>
 <div><span class="lb">TRACKLIST: SIDE A</span><div class="tl">${T.slice(0,6).map(row).join('')}</div><span class="lb">TRACKLIST: SIDE B</span><div class="tl">${T.slice(6).map((x,j)=>row(x,j+6)).join('')}</div><figure class="ph">${ph(s,w[3],0)}<figcaption>PHOTO: ${w[3]}, ${s.ko}</figcaption></figure></div></div>
 <div class="info"><div><span class="lb">INFO</span>SCENT: ${s.k}<br>TRACKS: ${T.length}<br>MOOD: ${s.m}</div><div><span class="lb">TRY WITH</span>${P[0][0]} ${P[0][1]}<br>${P[1][0]} ${P[1][1]}</div></div>
@@ -476,6 +546,9 @@ document.addEventListener('click',e=>{
   if(t.closest('#pClose'))return closePlayer();
   if(t.closest('#pPrev'))return step(-1);
   if(t.closest('#pNext'))return step(1);
+  if(t.closest('#pPlay'))return togglePlay();
+  const pb=t.closest('#pBar');if(pb){if(aud.duration){const q=pb.getBoundingClientRect();aud.currentTime=(e.clientX-q.left)/q.width*aud.duration}return}
+  if(t.closest('#playAll')){const[a0,b0]=S[curScentIdx].t[0].split('|');return openPlayer(curScentIdx,0,a0,b0,1)}
   const r=t.closest('.rowbtn');
   if(r)return openPlayer(+r.dataset.scent,+r.dataset.idx,r.dataset.title,r.dataset.artist);
 });

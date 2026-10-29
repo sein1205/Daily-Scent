@@ -306,9 +306,10 @@ function openAuth(mode,msg){
 }
 function closeAuth(){$('#authModal').hidden=true}
 async function submitAuth(email,pass){
-  const redir=location.protocol.startsWith('http')?'?redirect_to='+encodeURIComponent(location.origin+location.pathname):'';
-  const path=authMode==='login'?'/auth/v1/token?grant_type=password':'/auth/v1/signup'+redir;
-  const res=await fetch(SB_URL+path,{method:'POST',headers:{...SB_HEAD,'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+  const path=authMode==='login'?'/auth/v1/token?grant_type=password':'/auth/v1/signup';
+  let res;
+  try{res=await fetch(SB_URL+path,{method:'POST',headers:{...SB_HEAD,'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})})}
+  catch(err){console.error('auth fetch 실패',err);const e=new Error('서버에 연결하지 못했어요. Supabase 프로젝트가 일시중지(Paused)인지, 인터넷·광고차단 확장프로그램을 확인해 주세요.');e.bad=true;throw e}
   const data=await res.json().catch(()=>({}));
   if(!res.ok){const e=new Error(data.error_description||data.msg||data.error||'요청에 실패했습니다 ('+res.status+')');e.bad=true;throw e}
   if(data.access_token){saveSession(data);closeAuth();loadFavs();return}

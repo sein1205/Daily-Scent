@@ -1,8 +1,10 @@
 <!DOCTYPE html>
+<!-- Daily Scent ver.0.0.14 -->
 <html lang="ko" data-v="h">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="version" content="ver.0.0.14">
 <title>Daily Scent</title>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
@@ -134,7 +136,7 @@ footer{max-width:1100px;margin:0 auto;padding:0 14px 28px;text-align:center}
   <div id="pBar"><i id="pFill"></i></div>
   <div class="p-ctrl"><button id="pPrev" aria-label="이전 곡">⏮</button><button id="pPlay" aria-label="재생/일시정지">▶</button><button id="pNext" aria-label="다음 곡">⏭</button><a id="pExt" href="#" target="_blank" rel="noopener">YouTube에서 전체 듣기 ↗</a></div>
 </div>
-<footer><p class="mb">MADE BY ME</p><nav class="big"><a href="#">INSTA</a><a href="#">SPOTIFY</a><a href="#">YOUTUBE</a><a href="#">EMAIL</a></nav><div class="fb"><span>DAILY SCENT</span><span>©2026</span></div></footer>
+<footer><p class="mb">MADE BY ME</p><nav class="big"><a href="#">INSTA</a><a href="#">SPOTIFY</a><a href="#">YOUTUBE</a><a href="#">EMAIL</a></nav><div class="fb"><span>DAILY SCENT <small style="font:10px 'Space Mono',monospace;color:var(--mut);margin-left:6px">ver.0.0.14</small></span><span>©2026</span></div></footer>
 
 <script>
 const S=[
@@ -248,21 +250,27 @@ let curScent=null,curIdx=-1,curScentIdx=null;
 const SB_URL='https://zdqqlaovntwvxanhascz.supabase.co';
 const SB_KEY='sb_publishable_IpiT4SaOSfj7Iav0JQPPZA_g-LmUJ5M';
 const SB_HEAD={apikey:SB_KEY};
-let LIVE=null,LIVE_ERR=false;
+let LIVE=null,LIVE_ERR=false,LIVE_MSG='';
+function fileHint(){return location.protocol==='file:'?' · 파일(file://)로 열면 브라우저가 막을 수 있어요. 배포 주소(https://sein1205.github.io/Daily-Scent/)에서 확인하세요':''}
+async function sbGet(path){
+  const u=SB_URL+path+(path.includes('?')?'&':'?')+'apikey='+encodeURIComponent(SB_KEY);
+  try{const r=await fetch(u);if(r.status!==401&&r.status!==403)return r}catch(e){}
+  return fetch(SB_URL+path,{headers:SB_HEAD});
+}
 async function loadLive(){
   try{
-    const res=await fetch(SB_URL+'/rest/v1/perfumes?select=scent_key,brand,name,notes,sort_order&order=scent_key.asc,sort_order.asc',{headers:SB_HEAD});
-    if(!res.ok)throw new Error(res.status);
+    const res=await sbGet('/rest/v1/perfumes?select=scent_key,brand,name,notes,sort_order&order=scent_key.asc,sort_order.asc');
+    if(!res.ok){let m='';try{const j=await res.json();m=j.message||j.hint||''}catch(e){}throw new Error(res.status+(m?' '+m:''))}
     const rows=await res.json();
     const map={};
     rows.forEach(r=>{(map[r.scent_key]=map[r.scent_key]||[]).push(r)});
     LIVE=map;
-  }catch(e){LIVE_ERR=true}
+  }catch(e){LIVE_ERR=true;LIVE_MSG=String(e.message||e);console.error('perfumes 연결 실패',e)}
   refreshProducts();
 }
 function dbLabel(){
   if(LIVE)return'DB: SUPABASE 연결됨 · 실시간 데이터';
-  if(LIVE_ERR)return'DB: 연결 실패 · 로컬 데이터 표시 중';
+  if(LIVE_ERR)return'DB: 연결 실패('+LIVE_MSG.slice(0,70)+') · 로컬 데이터 표시 중'+fileHint();
   return'DB: 연결 확인 중…';
 }
 function prodsHTML(s){
@@ -309,7 +317,7 @@ async function submitAuth(email,pass){
   const path=authMode==='login'?'/auth/v1/token?grant_type=password':'/auth/v1/signup';
   let res;
   try{res=await fetch(SB_URL+path,{method:'POST',headers:{...SB_HEAD,'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})})}
-  catch(err){console.error('auth fetch 실패',err);const e=new Error('서버에 연결하지 못했어요. Supabase 프로젝트가 일시중지(Paused)인지, 인터넷·광고차단 확장프로그램을 확인해 주세요.');e.bad=true;throw e}
+  catch(err){console.error('auth fetch 실패',err);const e=new Error(location.protocol==='file:'?'서버에 연결하지 못했어요. 파일(file://)로 열면 브라우저가 막을 수 있어요. 배포 주소 https://sein1205.github.io/Daily-Scent/ 에서 시도해 주세요.':'서버에 연결하지 못했어요. Supabase 프로젝트가 일시중지(Paused)인지, 인터넷·광고차단 확장프로그램을 확인해 주세요.');e.bad=true;throw e}
   const data=await res.json().catch(()=>({}));
   if(!res.ok){const e=new Error(data.error_description||data.msg||data.error||'요청에 실패했습니다 ('+res.status+')');e.bad=true;throw e}
   if(data.access_token){saveSession(data);closeAuth();loadFavs();return}
@@ -468,18 +476,18 @@ aud.addEventListener('ended',()=>step(1));
 aud.addEventListener('timeupdate',()=>{if(aud.duration)$('#pFill').style.width=(aud.currentTime/aud.duration*100)+'%'});
 function show(v){closePlayer();for(const k in V)V[k].hidden=k!==v;R.dataset.v=v;scrollTo(0,0);ly=0;pl=false}
 
-let SC_OK=false,SC_ERR=false;
+let SC_OK=false,SC_ERR=false,SC_MSG='';
 const hx=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function cell(i){const s=S[i];return`<button class="cell" data-i="${i}">${cap(s)}<small>ITEM: 00${i+1}</small><small>${s.k}, ${s.ko}</small><small>${s.n.join(', ')}</small></button>`}
-function scLabel(){return SC_OK?'DB: SUPABASE 연결됨 · scents 실시간 데이터':SC_ERR?'DB: 연결 실패 · 로컬 데이터 표시 중':'DB: 연결 확인 중…'}
+function scLabel(){return SC_OK?'DB: SUPABASE 연결됨 · scents 실시간 데이터':SC_ERR?'DB: 연결 실패('+SC_MSG.slice(0,70)+') · 로컬 데이터 표시 중'+fileHint():'DB: 연결 확인 중…'}
 function renderHome(){V.h.innerHTML=`<h1 class="tt" style="font-size:${fs(11,12)}">DAILY SCENT</h1><p class="tg">DIVE INTO MY SCENTS — A SCENT A DAY, EVERY DAY.</p><div class="grid">${S.map((s,i)=>cell(i)).join('')}</div><p class="hdb">${scLabel()}</p>`}
 async function loadScents(){
   try{
-    const r=await fetch(SB_URL+'/rest/v1/scents?select=key,name_ko,color_from,color_to,notes,mood,description',{headers:SB_HEAD});
-    if(!r.ok)throw 0;
+    const r=await sbGet('/rest/v1/scents?select=key,name_ko,color_from,color_to,notes,mood,description');
+    if(!r.ok){let m='';try{const j=await r.json();m=j.message||j.hint||''}catch(e){}throw new Error(r.status+(m?' '+m:''))}
     (await r.json()).forEach(x=>{const s=S.find(v=>v.k===x.key);if(s){s.ko=x.name_ko;s.c=[x.color_from,x.color_to];s.n=x.notes;s.m=x.mood;s.d=x.description}});
     SC_OK=true;
-  }catch(e){SC_ERR=true}
+  }catch(e){SC_ERR=true;SC_MSG=String(e.message||e);console.error('scents 연결 실패',e)}
   renderHome();
 }
 renderHome();
